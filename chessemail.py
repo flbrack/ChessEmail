@@ -20,30 +20,25 @@ year, month = lastweek.year, lastweek.month
 
 # Get my chess.com personal stats
 stats = get_player_stats(username).json
-"""
+
 categories = ['chess_bullet', 'chess_blitz', 'chess_rapid', 'chess_daily']
-print('Chess.com Current Rankings')
+chessdotcom_rankingstring = ""
 for category in categories:
-    print(category[6:] + ": " + str(stats[category]['last']['rating']))
- 
-print('\nBest')
-for category in categories:
-    print(category[6:] + ": " + str(stats[category]['best']['rating']))
-  
-print('\nPuzzle Rush')
-print('Best: ' + str(stats['puzzle_rush']['best']['score']))
-"""
+    chessdotcom_rankingstring += category[6:] + ": " + str(stats[category]['last']['rating']) + "<br>"
+chessdotcom_rankingstring += 'puzzle rush: ' + str(stats['puzzle_rush']['best']['score']) + "<br>"
+
 # Set up lichess API session
 session = berserk.TokenSession(apitoken)
 client = berserk.Client(session=session)
-"""
+
 # Get my lichess personal stats
 profile = client.account.get()
 categories2 = ['bullet', 'blitz', 'rapid']
-print("\nLichess Current Rankings")
+
+lichess_rankingstring = ""
 for category in categories2:
-    print(category + ": " + str(profile['perfs'][category]['rating']))
-"""
+    lichess_rankingstring += category + ": " + str(profile['perfs'][category]['rating']) + "<br>"
+
 # Get my chess.com games from the last week
 chesscom_games = get_player_games_by_month('flbrack', year, month).json['games']
 
@@ -123,19 +118,31 @@ msg.add_alternative(f"""\
 <html>
     <body> 
         <h1>Your Chess Stats From Last Week</h1>
+        
+        <h3>Games Played</h3>
         <p>
-        Total Games Played: {total_games}
-        <br>
-        Lichess Games Played: {len(lichess_games)}
-        <br>
-        Chess.com Games Played: {len(chesscom_games)}
-        <br>
-        <br>
-        Wins: {total_wins}
-        <br>
-        Losses: {total_losses}
-        <br>
-        Draws: {total_draws}
+            Total Games Played: {total_games}
+            <br>
+            Lichess Games Played: {len(lichess_games)}
+            <br>
+            Chess dot com Games Played: {len(chesscom_games)}
+        </p>
+        <h3>Wins, Losses and Draws</h3>
+        <p>
+            Wins: {total_wins}
+            <br>
+            Losses: {total_losses}
+            <br>
+            Draws: {total_draws}
+        </p>
+        <h3>Rankings</h3>
+        <h4>Chess dot com Rankings</h4>
+        <p>
+            {chessdotcom_rankingstring}
+        </p>
+        <h4>Lichess Rankings</h4>
+        <p>
+            {lichess_rankingstring}
         </p>
     </body>
 </html>
