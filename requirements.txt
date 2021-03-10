@@ -1,0 +1,7 @@
+berserk
+chessdotcom
+python-dotenv
+datetime
+email
+matplotlib
+smtplib

@@ -5,24 +5,23 @@ import matplotlib.pyplot as plt
 from datetime import timedelta, datetime
 from chessdotcom import get_player_stats, get_player_games_by_month
 import berserk
-import os
+import config
 import io
 import smtplib
 from email.message import EmailMessage
 from email.utils import make_msgid
 
-# Retrieve envrionment variables
-username = os.environ.get('chessname')
-apitoken = os.environ.get('lichess_api_token')
-emailaddress = os.environ.get('email')
-emailpassword = os.environ.get('emailpass')
+USERNAME = config.Config.USERNAME
+APITOKEN = config.Config.APITOKEN
+EMAIL_ADDRESS = config.Config.EMAIL_ADDRESS
+EMAIL_PASS = config.Config.EMAIL_PASS
 
 # Get datetime for lastweek
 lastweek = datetime.now()  - timedelta(days=7)
 year, month = lastweek.year, lastweek.month
 
 # Get my chess.com personal stats
-stats = get_player_stats(username).json
+stats = get_player_stats(USERNAME).json
 
 categories = ['chess_bullet', 'chess_blitz', 'chess_rapid', 'chess_daily']
 chessdotcom_rankingstring = ""
@@ -31,7 +30,7 @@ for category in categories:
 chessdotcom_rankingstring += 'puzzle rush: ' + str(stats['puzzle_rush']['best']['score']) + "<br>"
 
 # Set up lichess API session
-session = berserk.TokenSession(apitoken)
+session = berserk.TokenSession(APITOKEN)
 client = berserk.Client(session=session)
 
 # Get my lichess personal stats
@@ -43,22 +42,22 @@ for category in categories2:
     lichess_rankingstring += category + ": " + str(profile['perfs'][category]['rating']) + "<br>"
 
 # Get my chess.com games from the last week
-chesscom_games = get_player_games_by_month('flbrack', year, month).json['games']
+chesscom_games = get_player_games_by_month(USERNAME, year, month).json['games']
 
 if lastweek.month != datetime.now().month:
-    chesscom_games += get_player_games_by_month('flbrack', year, month+1).json['games']
+    chesscom_games += get_player_games_by_month(USERNAME, year, month+1).json['games']
 # Logic to take care of if last week covered two different months
 for game in chesscom_games[:]:
     if datetime.fromtimestamp(game['end_time']) < lastweek:
         chesscom_games.remove(game)
 
 # List of strings used to represent different types of draws in the chess.com API
-chesscomDrawTypes = ['agreed', 'stalemate', 'repition', 'insufficient', '50move', 'timevsinsufficient', 'abandoned']
+chesscomDrawTypes = ['agreed', 'stalemate', 'repetition', 'insufficient', '50move', 'timevsinsufficient', 'abandoned']
 
 # Count wins, draws and losses from last week on chess.com
 chesscom_wins, chesscom_draws, chesscom_losses = 0, 0, 0
 for game in chesscom_games:
-    if game['white']['username'] == 'flbrack':
+    if game['white']['username'] == USERNAME:
         result = game['white']['result']
     else:
         result = game['black']['result']
@@ -74,15 +73,15 @@ starttime = int(datetime.timestamp(lastweek)*1000)
 endtime = int(datetime.timestamp(datetime.now())*1000)
 
 # Retrieve lichess games from past week
-lichess_games = list(client.games.export_by_player(username='flbrack',since=starttime, until=endtime, max=500))
+lichess_games = list(client.games.export_by_player(username=USERNAME,since=starttime, until=endtime, max=500))
 
 # Count wins, draws and losses from last week on lichess
 lichess_wins, lichess_draws = 0, 0
 for game in lichess_games:
     try:
-        if game['players']['white']['user']['name'] == 'flbrack' and game['winner'] == 'white':
+        if game['players']['white']['user']['name'] == USERNAME and game['winner'] == 'white':
             lichess_wins+=1
-        elif game['players']['black']['user']['name'] == 'flbrack' and game['winner'] == 'black':
+        elif game['players']['black']['user']['name'] == USERNAME and game['winner'] == 'black':
             lichess_wins+=1
         if game['winner'] == 'draw':
             lichess_draws+=1
@@ -111,8 +110,8 @@ buf.seek(0)
 # Compose html message
 msg = EmailMessage()
 msg['Subject'] = 'Your Weekly Chess Update'
-msg['From'] = emailaddress
-msg['To'] = emailaddress
+msg['From'] = EMAIL_ADDRESS
+msg['To'] = EMAIL_ADDRESS
 
 msg.set_content('HTML is not working for your email client')
 
@@ -163,7 +162,7 @@ with smtplib.SMTP('smtp.office365.com', 587) as smtp:
         smtp.starttls()
         smtp.ehlo()
 
-        smtp.login(emailaddress, emailpassword)
+        smtp.login(EMAIL_ADDRESS, EMAIL_PASS)
         smtp.send_message(msg)
     except:
         print("Error: Failed to send email.")
