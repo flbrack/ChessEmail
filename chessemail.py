@@ -7,6 +7,7 @@ import os
 import io
 import smtplib
 from email.message import EmailMessage
+from email.utils import make_msgid
 
 # Retrieve envrionment variables
 username = os.environ.get('chessname')
@@ -87,25 +88,22 @@ for game in lichess_games:
         lichess_draws+=1
 lichess_losses = len(lichess_games) - lichess_wins - lichess_draws
 
-
+# Summarise stats
 total_games = len(lichess_games) + len(chesscom_games)
 total_wins = lichess_wins + chesscom_wins
 total_losses = lichess_losses + chesscom_losses
 total_draws = lichess_draws + chesscom_draws
-"""
+
+# Create pie chart
 sizes = [total_wins, total_draws, total_losses]
 labels = ['wins', 'draws', 'losses']
-
-print("\nLast Week")
-for i in range(3):
-    print(f"{labels[i]}: {sizes[i]}")    
 
 plt.pie(sizes, labels = labels, startangle = 270, autopct='%1.1f%%')
 plt.title(f"Total Games: {total_games}")
 plt.savefig("Piechart.png")
-"""
 
 
+# Compose html message
 msg = EmailMessage()
 msg['Subject'] = 'Your Weekly Chess Update'
 msg['From'] = emailaddress
@@ -113,6 +111,7 @@ msg['To'] = emailaddress
 
 msg.set_content('HTML is not working for your email client')
 
+piechart_cid = make_msgid()
 msg.add_alternative(f"""\
 <!DOCTYPEhtml>
 <html>
@@ -129,11 +128,11 @@ msg.add_alternative(f"""\
         </p>
         <h3>Wins, Losses and Draws</h3>
         <p>
-            Wins: {total_wins}
+            Wins: {total_wins}, Percentage: {total_wins/total_games:.2f}%
             <br>
-            Losses: {total_losses}
+            Losses: {total_losses}, Percentage: {total_losses/total_games:.2f}%
             <br>
-            Draws: {total_draws}
+            Draws: {total_draws}, Percentage: {total_draws/total_games:.2f}%
         </p>
         <h3>Rankings</h3>
         <h4>Chess dot com Rankings</h4>
@@ -144,11 +143,16 @@ msg.add_alternative(f"""\
         <p>
             {lichess_rankingstring}
         </p>
+
+        <img src="cid:{piechart_cid[1:-1]}" width=200 height=200 />
     </body>
 </html>
 """, subtype='html')
 
+with open("Piechart.png", "rb") as img:
+    msg.get_payload()[1].add_related(img.read(), 'image', 'png', cid=piechart_cid)
 
+# Send the email
 with smtplib.SMTP('smtp.office365.com', 587) as smtp:
     try:
         smtp.ehlo()
