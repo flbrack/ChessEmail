@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/opt/anaconda3/bin/python3
 
 # Import libraries
 import matplotlib.pyplot as plt
