@@ -133,11 +133,11 @@ msg.add_alternative(f"""\
         </p>
         <h3>Wins, Losses and Draws</h3>
         <p>
-            Wins: {total_wins}, Percentage: {total_wins/total_games:.2f}%
+            Wins: {total_wins}, Percentage: {100*total_wins/total_games:.2f}%
             <br>
-            Losses: {total_losses}, Percentage: {total_losses/total_games:.2f}%
+            Losses: {total_losses}, Percentage: {100*total_losses/total_games:.2f}%
             <br>
-            Draws: {total_draws}, Percentage: {total_draws/total_games:.2f}%
+            Draws: {total_draws}, Percentage: {100*total_draws/total_games:.2f}%
         </p>
         <h3>Rankings</h3>
         <h4>Chess dot com Rankings</h4>
