@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 # Import libraries
 import matplotlib.pyplot as plt
 from datetime import timedelta, datetime
@@ -100,8 +102,11 @@ labels = ['wins', 'draws', 'losses']
 
 plt.pie(sizes, labels = labels, startangle = 270, autopct='%1.1f%%')
 plt.title(f"Total Games: {total_games}")
-plt.savefig("Piechart.png")
 
+# Save figure to memory
+buf = io.BytesIO()
+plt.savefig(buf, format='png')
+buf.seek(0)
 
 # Compose html message
 msg = EmailMessage()
@@ -149,8 +154,7 @@ msg.add_alternative(f"""\
 </html>
 """, subtype='html')
 
-with open("Piechart.png", "rb") as img:
-    msg.get_payload()[1].add_related(img.read(), 'image', 'png', cid=piechart_cid)
+msg.get_payload()[1].add_related(buf.read(), 'image', 'png', cid=piechart_cid)
 
 # Send the email
 with smtplib.SMTP('smtp.office365.com', 587) as smtp:
