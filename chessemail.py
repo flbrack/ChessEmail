@@ -5,16 +5,18 @@ import matplotlib.pyplot as plt
 from datetime import timedelta, datetime
 from chessdotcom import get_player_stats, get_player_games_by_month
 import berserk
-import config
+import os
 import io
 import smtplib
 from email.message import EmailMessage
 from email.utils import make_msgid
 
-USERNAME = config.Config.USERNAME
-APITOKEN = config.Config.APITOKEN
-EMAIL_ADDRESS = config.Config.EMAIL_ADDRESS
-EMAIL_PASS = config.Config.EMAIL_PASS
+
+USERNAME = os.getenv('CHESSNAME')
+APITOKEN = os.getenv('APITOKEN')
+EMAIL_ADDRESS = os.getenv('EMAIL_ADDRESS')
+EMAIL_PASS = os.getenv('EMAIL_PASS')
+
 
 # Get datetime for lastweek
 lastweek = datetime.now()  - timedelta(days=7)
@@ -85,7 +87,7 @@ for game in lichess_games:
             lichess_wins+=1
         if game['winner'] == 'draw':
             lichess_draws+=1
-    except:
+    except Exception:
         lichess_draws+=1
 lichess_losses = len(lichess_games) - lichess_wins - lichess_draws
 
@@ -164,15 +166,5 @@ with smtplib.SMTP('smtp.office365.com', 587) as smtp:
 
         smtp.login(EMAIL_ADDRESS, EMAIL_PASS)
         smtp.send_message(msg)
-    except:
+    except Exception:
         print("Error: Failed to send email.")
-
-
-
-
-
-
-
-
-
-

@@ -1,7 +1,4 @@
 berserk
-chessdotcom
-python-dotenv
-datetime
-email
+chess.com
 matplotlib
 smtplib
